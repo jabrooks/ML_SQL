@@ -1,0 +1,32 @@
+--  This will work on linear function - y = mx + b.
+-- Variables M* and B* will match to m = slope and b = y intercept
+
+CREATE OR REPLACE PROCEDURE STEP_GRADIENT
+	(IN B_CURRENT DECIMAL(7,4), 
+ 	 IN M_CURRENT DECIMAL(7,4),
+	 IN LEARNING_RATE DECIMAL(5,3),
+	OUT NEWB DECIMAL(20,16),
+	OUT NEWM DECIMAL(20,16))
+BEGIN
+  DECLARE B_GRAD DECIMAL(20,16);
+  DECLARE M_GRAD DECIMAL(20,16);
+  DECLARE XPT DECIMAL(20,16);
+  DECLARE YPT DECIMAL(20,16);
+  DECLARE N INTEGER DEFAULT 100;
+  DECLARE SQLSTATE CHAR(5) DEFAULT '00000';
+  DECLARE C1 CURSOR FOR SELECT X_NUM,Y_NUM FROM POINTS;
+
+  OPEN C1;
+-- XPT and YPT are the X value and y value of each data point pulled from the "points" table
+--  keep an eye on order of precedence!
+
+  WHILE N > 0 DO
+	FETCH FROM C1 INTO XPT, YPT;
+	SET B_GRAD = B_GRAD + ((-2/N) * (YPT - ((M_CURRENT*XPT)+ B_CURRENT)));
+	SET M_GRAD = M_GRAD + ((-2/N) * XPT * (YPT - ((M_CURRENT * XPT) + B_CURRENT)));
+	SET NEWB =  B_CURRENT - (LEARNING_RATE * B_GRAD);	
+	SET NEWM =  M_CURRENT - (LEARNING_RATE * M_GRAD);
+  END WHILE;
+CLOSE C1;
+END 
+@
